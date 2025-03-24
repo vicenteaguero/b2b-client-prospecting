@@ -1,14 +1,20 @@
-#  client_prospectin/utils.py
+#  client_prospecting/utils.py
 
 from dotenv import load_dotenv
 
 import base64
 import re
+import os
 
 from client_prospecting.params import ENV_PATH
 
 def load_env():
-    load_dotenv(ENV_PATH)
+    if os.getenv('STREAMLIT_SERVER_RUN_ON_SAVE') == 'true' or os.getenv('STREAMLIT_CLOUD') == '1':
+        import streamlit as st
+        os.environ['OPENAI_APIKEY'] = st.secrets['openai']['OPENAI_APIKEY']
+        os.environ['GMAIL_CREDENTIALS_B64'] = st.secrets['gmail']['GMAIL_CREDENTIALS_B64']
+    else:
+        load_dotenv(ENV_PATH)
 
 def extract_plain_text(payload):
     if payload.get('mimeType') == 'text/plain' and 'data' in payload['body']:
