@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "b2b-client-prospecting"
+version = "0.0.1"
+description = "[ ADD STREAMLIT LINK ]"
+authors = [
+    "Vicente Agüero <vicenteaguero>",
+]
+readme = "README.md"
+packages = [
+    { include = "client_prospecting", from = "." }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+openai = "^1.52.2"
+streamlit = "^1.39.0"
+python-dotenv = "^1.0.1"
+google-auth = "^2.38.0"
+google-auth-oauthlib = "^1.2.1"
+google-api-python-client = "^2.165.0"
+streamlit-autorefresh = "^1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+ruff = "^0.11.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
