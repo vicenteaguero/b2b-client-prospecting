@@ -10,10 +10,14 @@ from email.mime.text import MIMEText
 from datetime import datetime
 import base64
 import pickle
+import json
 import os
 
 from client_prospecting.params import SCOPES, CREDENTIALS_PATH, TOKEN_PATH, BANNER_EMAIL_PATH
-from client_prospecting.utils import extract_plain_text, extract_mail, clean_subject
+from client_prospecting.utils import extract_plain_text, extract_mail, clean_subject, load_env
+
+load_env()
+CREDENTIALS_JSON_B64 = os.getenv('GMAIL_CREDENTIALS_B64')
 
 def get_gmail():
     credentials = None
@@ -24,8 +28,8 @@ def get_gmail():
         if credentials and credentials.expired and credentials.refresh_token:
             credentials.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                CREDENTIALS_PATH, SCOPES)
+            credentials_json = json.loads(base64.b64decode(CREDENTIALS_JSON_B64))
+            flow = InstalledAppFlow.from_client_config(credentials_json, SCOPES)
             credentials = flow.run_local_server(port=0)
         with open(TOKEN_PATH, 'wb') as token:
             pickle.dump(credentials, token)
