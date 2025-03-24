@@ -15,20 +15,20 @@ import os
 
 from client_prospecting.utils import extract_plain_text, extract_mail, clean_subject, load_env
 from client_prospecting.params import SCOPES, CREDENTIALS_PATH, BANNER_EMAIL_PATH
-from client_prospecting.params import TOKEN_PATH as LOCAL_TOKEN_PATH
+# from client_prospecting.params import TOKEN_PATH as LOCAL_TOKEN_PATH
 
 load_env()
 CREDENTIALS_JSON_B64 = os.getenv('GMAIL_CREDENTIALS_B64')
 
 def get_gmail():
+    import streamlit as st
+    TOKEN_PATH = '/tmp/token.pkl'
     credentials = None
-    TOKEN_PATH = '/tmp/token.pkl' if os.getenv('STREAMLIT_CLOUD') == '1' else LOCAL_TOKEN_PATH
-    if os.getenv('STREAMLIT_CLOUD') == '1':
-        import streamlit as st
-        if not os.path.exists(TOKEN_PATH):
-            token_pkl = base64.b64decode(st.secrets['gmail']['GMAIL_TOKEN_B64'])
-            with open(TOKEN_PATH, 'wb') as f:
-                f.write(token_pkl)
+
+    if not os.path.exists(TOKEN_PATH):
+        token_pkl = base64.b64decode(st.secrets['gmail']['GMAIL_TOKEN_B64'])
+        with open(TOKEN_PATH, 'wb') as f:
+            f.write(token_pkl)
 
     if os.path.exists(TOKEN_PATH):
         with open(TOKEN_PATH, 'rb') as token:
@@ -37,18 +37,42 @@ def get_gmail():
     if not credentials or not credentials.valid:
         if credentials and credentials.expired and credentials.refresh_token:
             credentials.refresh(Request())
-        elif os.getenv('STREAMLIT_CLOUD') == '1':
-            raise RuntimeError(
-                'Invalid or expired Gmail token on Streamlit Cloud. Re-upload a fresh token.'
-            )
-        else:
-            credentials_json = json.loads(base64.b64decode(CREDENTIALS_JSON_B64))
-            flow = InstalledAppFlow.from_client_config(credentials_json, SCOPES)
-            credentials = flow.run_local_server(port=0)
             with open(TOKEN_PATH, 'wb') as token:
                 pickle.dump(credentials, token)
+        else:
+            raise RuntimeError('Invalid or expired Gmail token on Streamlit Cloud. Re-upload a fresh token.')
 
     return build('gmail', 'v1', credentials=credentials)
+
+# def get_gmail():
+#     credentials = None
+#     TOKEN_PATH = '/tmp/token.pkl' if os.getenv('STREAMLIT_CLOUD') == '1' else LOCAL_TOKEN_PATH
+#     if os.getenv('STREAMLIT_CLOUD') == '1':
+#         import streamlit as st
+#         if not os.path.exists(TOKEN_PATH):
+#             token_pkl = base64.b64decode(st.secrets['gmail']['GMAIL_TOKEN_B64'])
+#             with open(TOKEN_PATH, 'wb') as f:
+#                 f.write(token_pkl)
+
+#     if os.path.exists(TOKEN_PATH):
+#         with open(TOKEN_PATH, 'rb') as token:
+#             credentials = pickle.load(token)
+
+#     if not credentials or not credentials.valid:
+#         if credentials and credentials.expired and credentials.refresh_token:
+#             credentials.refresh(Request())
+#         elif os.getenv('STREAMLIT_CLOUD') == '1':
+#             raise RuntimeError(
+#                 'Invalid or expired Gmail token on Streamlit Cloud. Re-upload a fresh token.'
+#             )
+#         else:
+#             credentials_json = json.loads(base64.b64decode(CREDENTIALS_JSON_B64))
+#             flow = InstalledAppFlow.from_client_config(credentials_json, SCOPES)
+#             credentials = flow.run_local_server(port=0)
+#             with open(TOKEN_PATH, 'wb') as token:
+#                 pickle.dump(credentials, token)
+
+#     return build('gmail', 'v1', credentials=credentials)
 
 
 def get_unanswered_emails(gmail):
