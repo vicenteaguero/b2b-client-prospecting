@@ -21,6 +21,13 @@ CREDENTIALS_JSON_B64 = os.getenv('GMAIL_CREDENTIALS_B64')
 
 def get_gmail():
     credentials = None
+    if os.getenv('STREAMLIT_CLOUD') == '1':
+        import streamlit as st
+        TOKEN_PATH = '/tmp/token.pkl'
+        if not os.path.exists(TOKEN_PATH):
+            token_pkl = base64.b64decode(st.secrets['gmail']['GMAIL_TOKEN_B64'])
+            with open(TOKEN_PATH, 'wb') as f:
+                f.write(token_pkl)
     if os.path.exists(TOKEN_PATH):
         with open(TOKEN_PATH, 'rb') as token:
             credentials = pickle.load(token)
