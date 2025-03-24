@@ -13,8 +13,9 @@ import pickle
 import json
 import os
 
-from client_prospecting.params import SCOPES, CREDENTIALS_PATH, TOKEN_PATH, BANNER_EMAIL_PATH
 from client_prospecting.utils import extract_plain_text, extract_mail, clean_subject, load_env
+from client_prospecting.params import SCOPES, CREDENTIALS_PATH, BANNER_EMAIL_PATH
+from client_prospecting.params import TOKEN_PATH as LOCAL_TOKEN_PATH
 
 load_env()
 CREDENTIALS_JSON_B64 = os.getenv('GMAIL_CREDENTIALS_B64')
@@ -28,6 +29,8 @@ def get_gmail():
             token_pkl = base64.b64decode(st.secrets['gmail']['GMAIL_TOKEN_B64'])
             with open(TOKEN_PATH, 'wb') as f:
                 f.write(token_pkl)
+    else:
+        TOKEN_PATH = LOCAL_TOKEN_PATH
     if os.path.exists(TOKEN_PATH):
         with open(TOKEN_PATH, 'rb') as token:
             credentials = pickle.load(token)
